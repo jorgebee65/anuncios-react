@@ -12,10 +12,9 @@ import {
 } from "@mui/material";
 
 const NewAdForm = () => {
+  const baseUrl = import.meta.env.VITE_API_URL;
   const zonas = ["Orizaba Norte", "Orizaba Centro", "Orizaba Sur", "Cerritos"];
-
   const [emailError, setEmailError] = useState("");
-
   const handleEmailChange = (e) => {
     const input = e.target.value;
 
@@ -147,7 +146,7 @@ const NewAdForm = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8585/api/v1/categories")
+      .get(`${baseUrl}/api/v1/categories`)
       .then((res) => {
         const cats = res.data;
         setCategories(cats);
@@ -184,7 +183,7 @@ const NewAdForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8585/api/v1/advertises", formData, {
+      await axios.post(`${baseUrl}/api/v1/advertises`, formData, {
         headers: { "Content-Type": "application/json" },
       });
       setSnackbar({

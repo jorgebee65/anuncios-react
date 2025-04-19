@@ -11,6 +11,7 @@ const Header = () => {
   const location = useLocation(); // importante para detectar navegación
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState(null);
+  const [firstName, setFirstName] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -18,8 +19,8 @@ const Header = () => {
       try {
         const decoded = jwtDecode(token);
         setIsAuthenticated(true);
-
-        // Si roles es un array:
+        const firstName = decoded.firstName;
+        setFirstName(firstName);
         const roles = decoded.roles;
         if (Array.isArray(roles)) {
           setRole(roles[0]); // O muestra todos si quieres
@@ -39,6 +40,10 @@ const Header = () => {
 
   const goToCreateAd = () => {
     navigate("/nuevo-anuncio");
+  };
+
+  const goToRegister = () => {
+    navigate("/register");
   };
 
   const goToLogin = () => {
@@ -61,7 +66,7 @@ const Header = () => {
 
         {isAuthenticated && role && (
           <Typography variant="body1" sx={{ mr: 2 }}>
-            Rol: <strong>{role}</strong>
+            <strong>{firstName}</strong>
           </Typography>
         )}
         {isAuthenticated ? (
@@ -74,14 +79,19 @@ const Header = () => {
             Cerrar Sesión
           </Button>
         ) : (
-          <Button
-            color="inherit"
-            startIcon={<LoginIcon />}
-            onClick={goToLogin}
-            sx={{ mr: 2 }}
-          >
-            Iniciar Sesión
-          </Button>
+          <>
+            <Button color="inherit" onClick={goToRegister} sx={{ mr: 2 }}>
+              Registrarse
+            </Button>
+            <Button
+              color="inherit"
+              startIcon={<LoginIcon />}
+              onClick={goToLogin}
+              sx={{ mr: 2 }}
+            >
+              Iniciar Sesión
+            </Button>
+          </>
         )}
 
         <Button color="secondary" variant="contained" onClick={goToCreateAd}>

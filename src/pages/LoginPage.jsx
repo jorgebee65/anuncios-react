@@ -12,7 +12,7 @@ import {
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 
-// Validación con Yup
+const baseUrl = import.meta.env.VITE_API_URL;
 const LoginSchema = Yup.object().shape({
   username: Yup.string().required("Requerido"),
   password: Yup.string().required("Requerido"),
@@ -25,18 +25,9 @@ const LoginPage = () => {
   const handleLogin = async (values, { setSubmitting }) => {
     setError("");
     try {
-      const response = await axios.post(
-        "http://localhost:8585/api/v1/auth/login",
-        values
-      );
-
-      // Suponemos que el backend devuelve: { "token": "eyJhbGciOi..." }
+      const response = await axios.post(`${baseUrl}/api/v1/auth/login`, values);
       const token = response.data.token;
-
-      // ✅ Guardamos el token en localStorage (usa una clave estándar)
       localStorage.setItem("token", token);
-
-      // ✅ Redirigir al home
       navigate("/");
     } catch (err) {
       setError("Credenciales inválidas o error de servidor");

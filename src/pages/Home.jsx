@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Container,
   Grid,
@@ -9,33 +8,36 @@ import {
   MenuItem,
   InputLabel,
   Select,
+  IconButton,
+  CircularProgress,
 } from "@mui/material";
+import { OutlinedInput, InputAdornment } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import CustomCard from "../components/CustomCard";
+import { useCachedAdverts } from "../hooks/useCachedAdverts";
+import { useCachedCategories } from "../hooks/useCachedCategories"; // importa el hook
+import ClearIcon from "@mui/icons-material/Clear";
 
 const Home = () => {
-  const [advList, setAdvList] = useState([]);
-  const [page, setPage] = useState(0); // Backend es 0-based
-  const [totalPages, setTotalPages] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(0);
   const [size, setSize] = useState(3);
+  const [category, setCategory] = useState("");
+  const { categories, loading: loadingCategories } = useCachedCategories();
 
-  const fetchData = async (pageNumber = 0) => {
-    try {
-      const { data } = await axios.get(
-        `http://localhost:8585/api/v1/advertises?page=${pageNumber}&size=${size}&sort=creation,asc&active=true`
-      );
-      setAdvList(data.content);
-      setTotalPages(data.totalPages);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const { data: allAdverts, loading } = useCachedAdverts(category);
 
-  useEffect(() => {
-    fetchData(page);
-  }, [page, size]);
+  const filteredAdverts = allAdverts.filter((adv) =>
+    adv.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
+  const paginatedAdverts = filteredAdverts.slice(
+    page * size,
+    page * size + size
+  );
+  const totalPages = Math.ceil(filteredAdverts.length / size);
   const handlePageChange = (event, value) => {
-    setPage(value - 1); // MUI usa 1-based, backend usa 0-based
+    setPage(value - 1);
   };
 
   return (
@@ -47,6 +49,60 @@ const Home = () => {
         mb={3}
         justifyContent="flex-end"
       >
+        <FormControl size="small" sx={{ minWidth: 300 }}>
+          <InputLabel htmlFor="search-input">Buscar anuncio</InputLabel>
+          <OutlinedInput
+            id="search-input"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(0);
+            }}
+            label="Buscar anuncio"
+            endAdornment={
+              <InputAdornment position="end">
+                {searchTerm && (
+                  <IconButton
+                    aria-label="Limpiar búsqueda"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setPage(0);
+                    }}
+                    edge="end"
+                    size="small"
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                )}
+                <SearchIcon />
+              </InputAdornment>
+            }
+          />
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="category-select-label">Categoría</InputLabel>
+          <Select
+            labelId="category-select-label"
+            id="category-select"
+            value={category}
+            label="Categoría"
+            onChange={(e) => {
+              const selected = e.target.value;
+              console.log("set category: " + selected);
+              setCategory(selected);
+              setPage(0);
+            }}
+            disabled={loadingCategories}
+          >
+            <MenuItem value="">Todas</MenuItem>
+            {categories.map((cat) => (
+              <MenuItem key={cat.id} value={cat.description}>
+                {cat.description}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <InputLabel id="size-select-label">Anuncios por página</InputLabel>
           <Select
@@ -56,7 +112,7 @@ const Home = () => {
             label="Anuncios por página"
             onChange={(e) => {
               setSize(Number(e.target.value));
-              setPage(0); // Reiniciar a la primera página
+              setPage(0);
             }}
           >
             {[3, 6, 9].map((num) => (
@@ -67,26 +123,35 @@ const Home = () => {
           </Select>
         </FormControl>
       </Stack>
-      <Grid
-        container
-        spacing={{ xs: 2, md: 3 }}
-        columns={{ xs: 4, sm: 8, md: 12 }}
-      >
-        {advList.map((adv) => (
-          <Grid key={adv.id}>
-            <CustomCard adv={adv} />
-          </Grid>
-        ))}
-      </Grid>
 
-      <Stack spacing={2} mt={4} alignItems="center">
-        <Pagination
-          count={totalPages}
-          page={page + 1} // Lo mostramos como 1-based
-          onChange={handlePageChange}
-          color="primary"
-        />
-      </Stack>
+      {loading ? (
+        <Stack alignItems="center" mt={4}>
+          <CircularProgress />
+        </Stack>
+      ) : (
+        <>
+          <Grid
+            container
+            spacing={{ xs: 2, md: 3 }}
+            columns={{ xs: 4, sm: 8, md: 12 }}
+          >
+            {paginatedAdverts.map((adv) => (
+              <Grid key={adv.id}>
+                <CustomCard adv={adv} />
+              </Grid>
+            ))}
+          </Grid>
+
+          <Stack spacing={2} mt={4} alignItems="center">
+            <Pagination
+              count={totalPages}
+              page={page + 1}
+              onChange={handlePageChange}
+              color="primary"
+            />
+          </Stack>
+        </>
+      )}
     </Container>
   );
 };

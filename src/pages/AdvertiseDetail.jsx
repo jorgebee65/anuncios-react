@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 
 const AdvertiseDetail = () => {
+  const baseUrl = import.meta.env.VITE_API_URL;
   const { id } = useParams(); // <- ID dinámico desde la URL
   const [ad, setAd] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +42,7 @@ const AdvertiseDetail = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8585/api/v1/advertises/${id}`);
+      await axios.delete(`${baseUrl}/api/v1/advertises/${id}`);
       setSnackbar({
         open: true,
         message: "Anuncio eliminado correctamente",
@@ -62,9 +63,7 @@ const AdvertiseDetail = () => {
   useEffect(() => {
     const fetchAdvertise = async () => {
       try {
-        const { data } = await axios.get(
-          `http://localhost:8585/api/v1/advertises/${id}`
-        );
+        const { data } = await axios.get(`${baseUrl}/api/v1/advertises/${id}`);
         setAd(data);
       } catch (error) {
         console.error("Error loading ad:", error);
@@ -77,7 +76,6 @@ const AdvertiseDetail = () => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        // Si roles es un array:
         const roles = decoded.roles;
         if (Array.isArray(roles)) {
           setRole(roles[0]); // O muestra todos si quieres
@@ -123,7 +121,7 @@ const AdvertiseDetail = () => {
           Redes: <a href={ad.facebook}>Facebook</a> |{" "}
           <a href={ad.instagram}>Instagram</a>
         </Typography>
-        {role === "ADMIN" && (
+        {role === "ROLE_ADMIN" && (
           <>
             <Button
               variant="contained"

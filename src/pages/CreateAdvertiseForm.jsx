@@ -13,6 +13,7 @@ import {
   MenuItem,
 } from "@mui/material";
 
+const baseUrl = import.meta.env.VITE_API_URL;
 const CreateAdvertiseForm = () => {
   const { id } = useParams();
   const zonas = ["Orizaba Norte", "Orizaba Centro", "Orizaba Sur", "Cerritos"];
@@ -33,7 +34,7 @@ const CreateAdvertiseForm = () => {
   // Cargar categorías (se ejecuta solo una vez)
   useEffect(() => {
     axios
-      .get("http://localhost:8585/api/v1/categories")
+      .get(`${baseUrl}/api/v1/categories`)
       .then((res) => {
         const cats = res.data;
         setCategories(cats);
@@ -45,7 +46,7 @@ const CreateAdvertiseForm = () => {
   useEffect(() => {
     if (id) {
       axios
-        .get(`http://localhost:8585/api/v1/advertises/${id}`)
+        .get(`${baseUrl}/api/v1/advertises/${id}`)
         .then((res) => setForm(res.data))
         .catch((err) => console.error("Error al cargar anuncio", err));
     }
@@ -114,10 +115,8 @@ const CreateAdvertiseForm = () => {
 
       if (id) {
         // PUT para actualizar
-        console.log("Token:", localStorage.getItem("token"));
-
         await axios.put(
-          `http://localhost:8585/api/v1/advertises/${id}/with-image`,
+          `${baseUrl}/api/v1/advertises/${id}/with-image`,
           formData,
           {
             headers: {
@@ -128,16 +127,12 @@ const CreateAdvertiseForm = () => {
         );
       } else {
         // POST para crear
-        await axios.post(
-          "http://localhost:8585/api/v1/advertises/with-image",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        await axios.post(`${baseUrl}/api/v1/advertises/with-image`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
       }
 
       setSnackbar({
@@ -270,7 +265,7 @@ const CreateAdvertiseForm = () => {
         onChange={handleFileChange}
         style={{ marginBottom: "16px" }}
       />
-      {role === "ADMIN" && (
+      {role === "ROLE_ADMIN" && (
         <Button type="submit" variant="contained" fullWidth>
           {id ? "Actualizar" : "Crear Nuevo"}
         </Button>
