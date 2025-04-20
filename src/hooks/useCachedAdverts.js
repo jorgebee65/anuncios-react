@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const baseUrl = import.meta.env.VITE_API_URL;
+const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
 const CACHE_KEY = "cached_adverts";
 const CACHE_TIMESTAMP_KEY = "cached_adverts_timestamp";
 const TTL = 15 * 60 * 1000; // 15 minutos

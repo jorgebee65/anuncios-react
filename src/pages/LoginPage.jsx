@@ -12,7 +12,7 @@ import {
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 
-const baseUrl = import.meta.env.VITE_API_URL;
+const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
 const LoginSchema = Yup.object().shape({
   username: Yup.string().required("Requerido"),
   password: Yup.string().required("Requerido"),

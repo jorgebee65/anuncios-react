@@ -13,7 +13,7 @@ import {
   MenuItem,
 } from "@mui/material";
 
-const baseUrl = import.meta.env.VITE_API_URL;
+const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
 const CreateAdvertiseForm = () => {
   const { id } = useParams();
   const zonas = ["Orizaba Norte", "Orizaba Centro", "Orizaba Sur", "Cerritos"];

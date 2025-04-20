@@ -11,7 +11,7 @@ import { useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 
-const baseUrl = import.meta.env.VITE_API_URL;
+const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
 // 🧠 Validación actualizada
 const validationSchema = Yup.object({
   firstName: Yup.string()

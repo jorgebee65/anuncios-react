@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 
 const NewAdForm = () => {
-  const baseUrl = import.meta.env.VITE_API_URL;
+  const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
   const zonas = ["Orizaba Norte", "Orizaba Centro", "Orizaba Sur", "Cerritos"];
   const [emailError, setEmailError] = useState("");
   const handleEmailChange = (e) => {

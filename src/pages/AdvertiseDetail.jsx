@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 
 const AdvertiseDetail = () => {
-  const baseUrl = import.meta.env.VITE_API_URL;
+  const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
   const { id } = useParams(); // <- ID dinámico desde la URL
   const [ad, setAd] = useState(null);
   const [loading, setLoading] = useState(true);
