@@ -10,9 +10,12 @@ import {
   Select,
   IconButton,
   CircularProgress,
+  Button,
+  Box,
 } from "@mui/material";
 import { OutlinedInput, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import CustomCard from "../components/CustomCard";
 import { useCachedAdverts } from "../hooks/useCachedAdverts";
 import { useCachedCategories } from "../hooks/useCachedCategories"; // importa el hook
@@ -25,7 +28,11 @@ const Home = () => {
   const [category, setCategory] = useState("");
   const { categories, loading: loadingCategories } = useCachedCategories();
 
-  const { data: allAdverts, loading } = useCachedAdverts(category);
+  const {
+    data: allAdverts,
+    loading,
+    refreshAdverts,
+  } = useCachedAdverts(category);
 
   const filteredAdverts = allAdverts.filter((adv) =>
     adv.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -43,13 +50,20 @@ const Home = () => {
   return (
     <Container>
       <Stack
-        direction="row"
+        direction={{ xs: "column", sm: "row" }} // columna en xs, fila en sm en adelante
         spacing={2}
-        alignItems="center"
+        alignItems="stretch"
         mb={3}
         justifyContent="flex-end"
+        flexWrap="wrap"
       >
-        <FormControl size="small" sx={{ minWidth: 300 }}>
+        <FormControl
+          size="small"
+          sx={{
+            minWidth: { xs: "100%", sm: 300 },
+            flex: 1,
+          }}
+        >
           <InputLabel htmlFor="search-input">Buscar anuncio</InputLabel>
           <OutlinedInput
             id="search-input"
@@ -79,7 +93,14 @@ const Home = () => {
             }
           />
         </FormControl>
-        <FormControl size="small" sx={{ minWidth: 180 }}>
+
+        <FormControl
+          size="small"
+          sx={{
+            minWidth: { xs: "100%", sm: 180 },
+            flex: 1,
+          }}
+        >
           <InputLabel id="category-select-label">Categoría</InputLabel>
           <Select
             labelId="category-select-label"
@@ -87,9 +108,7 @@ const Home = () => {
             value={category}
             label="Categoría"
             onChange={(e) => {
-              const selected = e.target.value;
-              console.log("set category: " + selected);
-              setCategory(selected);
+              setCategory(e.target.value);
               setPage(0);
             }}
             disabled={loadingCategories}
@@ -103,7 +122,13 @@ const Home = () => {
           </Select>
         </FormControl>
 
-        <FormControl size="small" sx={{ minWidth: 160 }}>
+        <FormControl
+          size="small"
+          sx={{
+            minWidth: { xs: "100%", sm: 160 },
+            flex: 1,
+          }}
+        >
           <InputLabel id="size-select-label">Anuncios por página</InputLabel>
           <Select
             labelId="size-select-label"
@@ -122,6 +147,19 @@ const Home = () => {
             ))}
           </Select>
         </FormControl>
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: { xs: "flex-end", sm: "center" },
+            alignItems: "center",
+            mt: { xs: 1, sm: 0 },
+          }}
+        >
+          <IconButton onClick={refreshAdverts} disabled={loading}>
+            <RefreshIcon />
+          </IconButton>
+        </Box>
       </Stack>
 
       {loading ? (

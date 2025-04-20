@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
 const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
@@ -10,6 +10,7 @@ export const useCachedAdverts = (category = "") => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Función para obtener anuncios y almacenarlos en caché
   const fetchAndCache = async () => {
     try {
       const { data } = await axios.get(
@@ -24,24 +25,47 @@ export const useCachedAdverts = (category = "") => {
     }
   };
 
-  useEffect(() => {
-    const cached = localStorage.getItem(CACHE_KEY);
-    const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+  // Función que maneja la carga de anuncios, con o sin caché
+  const loadAdverts = useCallback(
+    async (forceRefresh = false) => {
+      setLoading(true);
 
-    const isValid =
-      cached && timestamp && Date.now() - parseInt(timestamp, 10) < TTL;
+      const cached = localStorage.getItem(CACHE_KEY);
+      const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
 
-    const process = async () => {
-      const adverts = isValid ? JSON.parse(cached) : await fetchAndCache();
+      const isValid =
+        cached && timestamp && Date.now() - parseInt(timestamp, 10) < TTL;
+
+      let adverts = [];
+
+      if (forceRefresh || !isValid) {
+        // Si es forzado o el caché ha expirado, obtenemos los datos nuevamente
+        adverts = await fetchAndCache();
+      } else {
+        // Si los datos aún son válidos, los usamos
+        adverts = JSON.parse(cached);
+      }
+
+      // Filtrar por categoría si es necesario
       const filtered = category
         ? adverts.filter((adv) => adv.category?.description === category)
         : adverts;
+
       setData(filtered);
       setLoading(false);
-    };
+    },
+    [category]
+  );
 
-    process();
-  }, [category]);
+  // Cargar los anuncios en el efecto inicial
+  useEffect(() => {
+    loadAdverts();
+  }, [category, loadAdverts]);
 
-  return { data, loading };
+  // Función de refresco manual
+  const refreshAdverts = () => {
+    loadAdverts(true); // Forzar el refresco de los anuncios
+  };
+
+  return { data, loading, refreshAdverts };
 };
