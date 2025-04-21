@@ -11,7 +11,7 @@ const CategorySelect = ({ value, onChange }) => {
       const varios = categories.find((cat) => cat.description === "VARIOS");
       if (varios) {
         setSelectedCategory(varios);
-        onChange?.({ target: { value: varios.id, category: varios } });
+        onChange?.({ target: { category: varios } });
       }
     }
   }, [categories, value, onChange]);
@@ -26,10 +26,10 @@ const CategorySelect = ({ value, onChange }) => {
   }, [value, categories]);
 
   const handleChange = (e) => {
-    const selectedId = parseInt(e.target.value);
-    const category = categories.find((cat) => cat.id === selectedId);
+    const selectedDesc = e.target.value;
+    const category = categories.find((cat) => cat.description === selectedDesc);
     setSelectedCategory(category);
-    onChange?.({ target: { value: selectedId, category } });
+    onChange?.({ target: { category } });
   };
 
   return (
@@ -37,13 +37,13 @@ const CategorySelect = ({ value, onChange }) => {
       fullWidth
       select
       label="Categoría"
-      value={selectedCategory?.id || ""}
+      value={selectedCategory?.description || ""}
       onChange={handleChange}
       disabled={loading}
       sx={{ mb: 2 }}
     >
       {categories.map((cat) => (
-        <MenuItem key={cat.id} value={cat.id}>
+        <MenuItem key={cat.id} value={cat.description}>
           {cat.description}
         </MenuItem>
       ))}

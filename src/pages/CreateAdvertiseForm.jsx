@@ -180,12 +180,13 @@ const CreateAdvertiseForm = () => {
       />
       <CategorySelect
         value={form.category}
-        onChange={(e) =>
+        onChange={(e) => {
           setForm((prev) => ({
             ...prev,
-            category: e.target.value,
-          }))
-        }
+            category: e.target.category,
+          }));
+          console.log(form);
+        }}
       />
       <ZoneSelect
         zonas={zonas}
