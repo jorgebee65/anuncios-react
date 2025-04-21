@@ -1,33 +1,28 @@
-import { useEffect, useState } from "react";
 import {
   Container,
   Grid,
   Pagination,
   Stack,
-  FormControl,
-  MenuItem,
-  InputLabel,
-  Select,
   IconButton,
   CircularProgress,
-  Button,
   Box,
 } from "@mui/material";
-import { OutlinedInput, InputAdornment } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CustomCard from "../components/CustomCard";
+import SearchBar from "../components/SearchBar";
+import CategoryFilter from "../components/CategoryFilter";
+import PageSizeSelector from "../components/PageSizeSelector";
 import { useCachedAdverts } from "../hooks/useCachedAdverts";
-import { useCachedCategories } from "../hooks/useCachedCategories"; // importa el hook
-import ClearIcon from "@mui/icons-material/Clear";
+import { useCachedCategories } from "../hooks/useCachedCategories";
+import { useState } from "react";
 
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(3);
   const [category, setCategory] = useState("");
-  const { categories, loading: loadingCategories } = useCachedCategories();
 
+  const { categories, loading: loadingCategories } = useCachedCategories();
   const {
     data: allAdverts,
     loading,
@@ -37,125 +32,51 @@ const Home = () => {
   const filteredAdverts = allAdverts.filter((adv) =>
     adv.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   const paginatedAdverts = filteredAdverts.slice(
     page * size,
     page * size + size
   );
   const totalPages = Math.ceil(filteredAdverts.length / size);
-  const handlePageChange = (event, value) => {
-    setPage(value - 1);
-  };
 
   return (
     <Container>
       <Stack
-        direction={{ xs: "column", sm: "row" }} // columna en xs, fila en sm en adelante
+        direction={{ xs: "column", sm: "row" }}
         spacing={2}
-        alignItems="stretch"
         mb={3}
-        justifyContent="flex-end"
         flexWrap="wrap"
       >
-        <FormControl
-          size="small"
-          sx={{
-            minWidth: { xs: "100%", sm: 300 },
-            flex: 1,
+        <SearchBar
+          value={searchTerm}
+          onChange={(val) => {
+            setSearchTerm(val);
+            setPage(0);
           }}
-        >
-          <InputLabel htmlFor="search-input">Buscar anuncio</InputLabel>
-          <OutlinedInput
-            id="search-input"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPage(0);
-            }}
-            label="Buscar anuncio"
-            endAdornment={
-              <InputAdornment position="end">
-                {searchTerm && (
-                  <IconButton
-                    aria-label="Limpiar búsqueda"
-                    onClick={() => {
-                      setSearchTerm("");
-                      setPage(0);
-                    }}
-                    edge="end"
-                    size="small"
-                  >
-                    <ClearIcon />
-                  </IconButton>
-                )}
-                <SearchIcon />
-              </InputAdornment>
-            }
-          />
-        </FormControl>
+          onClear={() => {
+            setSearchTerm("");
+            setPage(0);
+          }}
+        />
 
-        <FormControl
-          size="small"
-          sx={{
-            minWidth: { xs: "100%", sm: 180 },
-            flex: 1,
+        <CategoryFilter
+          value={category}
+          onChange={(val) => {
+            setCategory(val);
+            setPage(0);
           }}
-        >
-          <InputLabel id="category-select-label">Categoría</InputLabel>
-          <Select
-            labelId="category-select-label"
-            id="category-select"
-            value={category}
-            label="Categoría"
-            onChange={(e) => {
-              setCategory(e.target.value);
-              setPage(0);
-            }}
-            disabled={loadingCategories}
-          >
-            <MenuItem value="">Todas</MenuItem>
-            {categories.map((cat) => (
-              <MenuItem key={cat.id} value={cat.description}>
-                {cat.description}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          categories={categories}
+          disabled={loadingCategories}
+        />
 
-        <FormControl
-          size="small"
-          sx={{
-            minWidth: { xs: "100%", sm: 160 },
-            flex: 1,
+        <PageSizeSelector
+          value={size}
+          onChange={(val) => {
+            setSize(val);
+            setPage(0);
           }}
-        >
-          <InputLabel id="size-select-label">Anuncios por página</InputLabel>
-          <Select
-            labelId="size-select-label"
-            id="size-select"
-            value={size}
-            label="Anuncios por página"
-            onChange={(e) => {
-              setSize(Number(e.target.value));
-              setPage(0);
-            }}
-          >
-            {[3, 6, 9].map((num) => (
-              <MenuItem key={num} value={num}>
-                {num}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        />
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: { xs: "flex-end", sm: "center" },
-            alignItems: "center",
-            mt: { xs: 1, sm: 0 },
-          }}
-        >
+        <Box sx={{ display: "flex", alignItems: "center" }}>
           <IconButton onClick={refreshAdverts} disabled={loading}>
             <RefreshIcon />
           </IconButton>
@@ -184,7 +105,7 @@ const Home = () => {
             <Pagination
               count={totalPages}
               page={page + 1}
-              onChange={handlePageChange}
+              onChange={(_, value) => setPage(value - 1)}
               color="primary"
             />
           </Stack>

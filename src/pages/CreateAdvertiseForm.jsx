@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import PriceInput from "../components/form/PriceInput";
+import EmailInput from "../components/form/EmailInput";
+import PhoneInput from "../components/form/PhoneInput";
+import CategorySelect from "../components/form/CategorySelect";
+import ZoneSelect from "../components/form/ZoneSelect";
+
 import {
   TextField,
   Button,
@@ -9,18 +15,15 @@ import {
   Typography,
   Snackbar,
   Alert,
-  InputLabel,
-  MenuItem,
 } from "@mui/material";
 import ImageUpload from "../components/ImageUpload";
 
 const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
+const zonas = ["Orizaba Norte", "Orizaba Centro", "Orizaba Sur", "Cerritos"];
 const CreateAdvertiseForm = () => {
   const { id } = useParams();
-  const zonas = ["Orizaba Norte", "Orizaba Centro", "Orizaba Sur", "Cerritos"];
-  const [categories, setCategories] = useState([]);
-  const [role, setRole] = useState(null);
   const [displayPrice, setDisplayPrice] = useState("");
+  const [role, setRole] = useState(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -32,27 +35,6 @@ const CreateAdvertiseForm = () => {
     facebook: "",
     instagram: "",
   });
-
-  useEffect(() => {
-    if (!form.zone) {
-      setForm((prev) => ({ ...prev, zone: zonas[0] }));
-    }
-  }, []);
-
-  // Cargar categorías (se ejecuta solo una vez)
-  useEffect(() => {
-    axios
-      .get(`${baseUrl}/api/v1/categories`)
-      .then((res) => {
-        const cats = res.data;
-        setCategories(cats);
-        const varios = cats.find((cat) => cat.description === "VARIOS");
-        if (varios && !form.category) {
-          setForm((prev) => ({ ...prev, category: varios }));
-        }
-      })
-      .catch((err) => console.error(err));
-  }, []);
 
   // Cargar anuncio si estamos en modo edición (id presente)
   useEffect(() => {
@@ -69,10 +51,9 @@ const CreateAdvertiseForm = () => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        // Si roles es un array:
         const roles = decoded.roles;
         if (Array.isArray(roles)) {
-          setRole(roles[0]); // O muestra todos si quieres
+          setRole(roles[0]);
         } else {
           setRole(roles);
         }
@@ -80,83 +61,29 @@ const CreateAdvertiseForm = () => {
         console.error("Token inválido:", e);
       }
     }
-  }, [location]);
-
-  const handleCategoryChange = (e) => {
-    const selectedId = parseInt(e.target.value);
-    const selectedCategory = categories.find((cat) => cat.id === selectedId);
-    setForm((prev) => ({
-      ...prev,
-      category: selectedCategory,
-    }));
-  };
+  }, []);
 
   const [file, setFile] = useState(null);
-  const navigate = useNavigate();
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const [phoneError, setPhoneError] = useState("");
-
-  const handlePhoneChange = (e) => {
-    const input = e.target.value;
-
-    const numeric = input.replace(/\D/g, "");
-
-    if (numeric.length <= 10) {
-      setForm((prev) => ({
-        ...prev,
-        phone: numeric,
-      }));
-
-      if (numeric.length === 10) {
-        setPhoneError("");
-      } else {
-        setPhoneError("El teléfono debe tener exactamente 10 dígitos");
-      }
-    }
-  };
-
-  const [emailError, setEmailError] = useState("");
-  const handleEmailChange = (e) => {
-    const input = e.target.value;
-
-    setForm((prev) => ({
-      ...prev,
-      email: input,
-    }));
-
-    // Validación básica de formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(input)) {
-      setEmailError("Correo electrónico no válido");
-    } else {
-      setEmailError("");
-    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!file && !id) {
-      setSnackbar({
-        open: true,
-        message: "Selecciona una imagen",
-        severity: "warning",
-      });
+      showSnackbar("Selecciona una imagen", "warning");
       return;
     }
 
@@ -166,7 +93,6 @@ const CreateAdvertiseForm = () => {
       formData.append("data", JSON.stringify(form));
 
       if (id) {
-        // PUT para actualizar
         await axios.put(
           `${baseUrl}/api/v1/advertises/${id}/with-image`,
           formData,
@@ -178,7 +104,6 @@ const CreateAdvertiseForm = () => {
           }
         );
       } else {
-        // POST para crear
         await axios.post(`${baseUrl}/api/v1/advertises/with-image`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -187,11 +112,7 @@ const CreateAdvertiseForm = () => {
         });
       }
 
-      setSnackbar({
-        open: true,
-        message: "Anuncio creado correctamente",
-        severity: "success",
-      });
+      showSnackbar("Anuncio creado correctamente");
       setForm({
         title: "",
         description: "",
@@ -206,11 +127,7 @@ const CreateAdvertiseForm = () => {
       setFile(null);
     } catch (error) {
       console.error(error);
-      setSnackbar({
-        open: true,
-        message: "Error al crear el anuncio",
-        severity: "error",
-      });
+      showSnackbar("Error al crear el anuncio", "error");
     }
   };
 
@@ -255,90 +172,33 @@ const CreateAdvertiseForm = () => {
       <Typography variant="body2" color="textSecondary" align="right">
         {form.description.length} / 250 caracteres
       </Typography>
-      <TextField
-        fullWidth
-        label="Precio"
-        name="price"
-        value={displayPrice}
-        onChange={(e) => {
-          const rawValue = e.target.value;
-          const numericValue = rawValue.replace(/[^0-9.]/g, "");
-
-          setDisplayPrice(numericValue);
-          handleChange({
-            target: {
-              name: "price",
-              value: numericValue,
-            },
-          });
-        }}
-        onBlur={() => {
-          const value = parseFloat(form.price);
-          if (!isNaN(value)) {
-            const formatted = new Intl.NumberFormat("es-MX", {
-              style: "currency",
-              currency: "MXN",
-              minimumFractionDigits: 2,
-            }).format(value);
-
-            setDisplayPrice(formatted);
-          }
-        }}
-        onFocus={() => {
-          setDisplayPrice(form.price);
-        }}
-        sx={{ mb: 2 }}
-        slotProps={{
-          htmlInput: {
-            inputMode: "decimal",
-          },
-        }}
+      <PriceInput
+        displayPrice={displayPrice}
+        setDisplayPrice={setDisplayPrice}
+        form={form}
+        handleChange={handleChange}
       />
-      <TextField
-        fullWidth
-        select
-        label="Categoría"
-        value={form.category?.id || ""}
-        onChange={handleCategoryChange}
-      >
-        {categories.map((cat) => (
-          <MenuItem key={cat.id} value={cat.id}>
-            {cat.description}
-          </MenuItem>
-        ))}
-      </TextField>
-      <TextField
-        fullWidth
-        select
-        label="Zona"
-        name="zone"
+      <CategorySelect
+        value={form.category}
+        onChange={(e) =>
+          setForm((prev) => ({
+            ...prev,
+            category: e.target.value,
+          }))
+        }
+      />
+      <ZoneSelect
+        zonas={zonas}
         value={form.zone}
-        onChange={handleChange}
-      >
-        {zonas.map((zona) => (
-          <MenuItem key={zona} value={zona}>
-            {zona}
-          </MenuItem>
-        ))}
-      </TextField>
-      <TextField
-        fullWidth
-        label="Teléfono"
-        name="phone"
-        value={form.phone}
-        onChange={handlePhoneChange}
-        error={!!phoneError}
-        helperText={phoneError}
+        onChange={(e) =>
+          setForm((prev) => ({
+            ...prev,
+            zone: e.target.value,
+          }))
+        }
       />
-      <TextField
-        fullWidth
-        label="Email"
-        name="email"
-        value={form.email}
-        onChange={handleEmailChange}
-        error={!!emailError}
-        helperText={emailError}
-      />
+      <PhoneInput form={form} setForm={setForm} />
+      <EmailInput form={form} setForm={setForm} />
       <TextField
         fullWidth
         label="Facebook"
