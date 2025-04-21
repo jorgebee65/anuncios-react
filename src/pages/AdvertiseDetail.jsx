@@ -42,7 +42,13 @@ const AdvertiseDetail = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`${baseUrl}/api/v1/advertises/${id}`);
+      await axios.delete(`${baseUrl}/api/v1/advertises/${id}`, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
       setSnackbar({
         open: true,
         message: "Anuncio eliminado correctamente",
@@ -96,7 +102,22 @@ const AdvertiseDetail = () => {
 
   return (
     <Card sx={{ maxWidth: 600, margin: "auto", mt: 4 }}>
-      <CardMedia sx={{ height: 600 }} image={ad.image} title={ad.title} />
+      <CardMedia
+        component="img"
+        image={ad.image}
+        title={ad.title}
+        sx={{
+          width: {
+            xs: "100%", // móvil: ocupa todo el ancho disponible
+            md: "60%", // escritorio: 60% del contenedor padre
+          },
+          maxWidth: "800px", // no exceder en pantallas muy grandes
+          height: "auto", // mantener proporción de la imagen
+          display: "block",
+          mx: "auto", // centra horizontalmente
+          borderRadius: 2, // opcional: bordes redondeados
+        }}
+      />
       <Box p={3}>
         <Typography variant="h4">{ad.title}</Typography>
         <Typography variant="body1" sx={{ mt: 1 }}>

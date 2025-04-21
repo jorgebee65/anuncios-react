@@ -12,6 +12,7 @@ import {
   InputLabel,
   MenuItem,
 } from "@mui/material";
+import ImageUpload from "../components/ImageUpload";
 
 const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
 const CreateAdvertiseForm = () => {
@@ -19,6 +20,7 @@ const CreateAdvertiseForm = () => {
   const zonas = ["Orizaba Norte", "Orizaba Centro", "Orizaba Sur", "Cerritos"];
   const [categories, setCategories] = useState([]);
   const [role, setRole] = useState(null);
+  const [displayPrice, setDisplayPrice] = useState("");
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -31,6 +33,12 @@ const CreateAdvertiseForm = () => {
     instagram: "",
   });
 
+  useEffect(() => {
+    if (!form.zone) {
+      setForm((prev) => ({ ...prev, zone: zonas[0] }));
+    }
+  }, []);
+
   // Cargar categorías (se ejecuta solo una vez)
   useEffect(() => {
     axios
@@ -38,6 +46,10 @@ const CreateAdvertiseForm = () => {
       .then((res) => {
         const cats = res.data;
         setCategories(cats);
+        const varios = cats.find((cat) => cat.description === "VARIOS");
+        if (varios && !form.category) {
+          setForm((prev) => ({ ...prev, category: varios }));
+        }
       })
       .catch((err) => console.error(err));
   }, []);
@@ -94,6 +106,46 @@ const CreateAdvertiseForm = () => {
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+  };
+
+  const [phoneError, setPhoneError] = useState("");
+
+  const handlePhoneChange = (e) => {
+    const input = e.target.value;
+
+    const numeric = input.replace(/\D/g, "");
+
+    if (numeric.length <= 10) {
+      setForm((prev) => ({
+        ...prev,
+        phone: numeric,
+      }));
+
+      if (numeric.length === 10) {
+        setPhoneError("");
+      } else {
+        setPhoneError("El teléfono debe tener exactamente 10 dígitos");
+      }
+    }
+  };
+
+  const [emailError, setEmailError] = useState("");
+  const handleEmailChange = (e) => {
+    const input = e.target.value;
+
+    setForm((prev) => ({
+      ...prev,
+      email: input,
+    }));
+
+    // Validación básica de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(input)) {
+      setEmailError("Correo electrónico no válido");
+    } else {
+      setEmailError("");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -179,6 +231,11 @@ const CreateAdvertiseForm = () => {
         value={form.title}
         onChange={handleChange}
         sx={{ mb: 2 }}
+        slotProps={{
+          htmlInput: {
+            maxLength: 100, // Limitar a 250 caracteres
+          },
+        }}
       />
       <TextField
         fullWidth
@@ -189,14 +246,53 @@ const CreateAdvertiseForm = () => {
         sx={{ mb: 2 }}
         multiline
         rows={4}
+        slotProps={{
+          htmlInput: {
+            maxLength: 250, // Limitar a 250 caracteres
+          },
+        }}
       />
+      <Typography variant="body2" color="textSecondary" align="right">
+        {form.description.length} / 250 caracteres
+      </Typography>
       <TextField
         fullWidth
         label="Precio"
         name="price"
-        value={form.price}
-        onChange={handleChange}
+        value={displayPrice}
+        onChange={(e) => {
+          const rawValue = e.target.value;
+          const numericValue = rawValue.replace(/[^0-9.]/g, "");
+
+          setDisplayPrice(numericValue);
+          handleChange({
+            target: {
+              name: "price",
+              value: numericValue,
+            },
+          });
+        }}
+        onBlur={() => {
+          const value = parseFloat(form.price);
+          if (!isNaN(value)) {
+            const formatted = new Intl.NumberFormat("es-MX", {
+              style: "currency",
+              currency: "MXN",
+              minimumFractionDigits: 2,
+            }).format(value);
+
+            setDisplayPrice(formatted);
+          }
+        }}
+        onFocus={() => {
+          setDisplayPrice(form.price);
+        }}
         sx={{ mb: 2 }}
+        slotProps={{
+          htmlInput: {
+            inputMode: "decimal",
+          },
+        }}
       />
       <TextField
         fullWidth
@@ -230,16 +326,18 @@ const CreateAdvertiseForm = () => {
         label="Teléfono"
         name="phone"
         value={form.phone}
-        onChange={handleChange}
-        sx={{ mb: 2 }}
+        onChange={handlePhoneChange}
+        error={!!phoneError}
+        helperText={phoneError}
       />
       <TextField
         fullWidth
         label="Email"
         name="email"
         value={form.email}
-        onChange={handleChange}
-        sx={{ mb: 2 }}
+        onChange={handleEmailChange}
+        error={!!emailError}
+        helperText={emailError}
       />
       <TextField
         fullWidth
@@ -258,13 +356,7 @@ const CreateAdvertiseForm = () => {
         sx={{ mb: 2 }}
       />
 
-      <InputLabel sx={{ mb: 1 }}>Seleccionar Imagen</InputLabel>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        style={{ marginBottom: "16px" }}
-      />
+      <ImageUpload file={file} setFile={setFile} />
       {role === "ROLE_ADMIN" && (
         <Button type="submit" variant="contained" fullWidth>
           {id ? "Actualizar" : "Crear Nuevo"}

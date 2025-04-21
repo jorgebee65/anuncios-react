@@ -64,21 +64,34 @@ const Header = () => {
     setAnchorEl(null);
   };
 
-  const renderMenuItems = () => (
-    <>
-      <MenuItem onClick={() => goTo("/")}>Inicio</MenuItem>
-      {!isAuthenticated && (
-        <>
-          <MenuItem onClick={() => goTo("/register")}>Registrarse</MenuItem>
-          <MenuItem onClick={() => goTo("/login")}>Iniciar Sesión</MenuItem>
-        </>
-      )}
-      {isAuthenticated && (
-        <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
-      )}
-      <MenuItem onClick={() => goTo("/nuevo-anuncio")}>Crear Anuncio</MenuItem>
-    </>
-  );
+  const renderMenuItems = () => {
+    const items = [
+      <MenuItem key="home" onClick={() => goTo("/")}>
+        Inicio
+      </MenuItem>,
+      !isAuthenticated && (
+        <MenuItem key="register" onClick={() => goTo("/register")}>
+          Registrarse
+        </MenuItem>
+      ),
+      !isAuthenticated && (
+        <MenuItem key="login" onClick={() => goTo("/login")}>
+          Iniciar Sesión
+        </MenuItem>
+      ),
+      isAuthenticated && (
+        <MenuItem key="logout" onClick={handleLogout}>
+          Cerrar Sesión
+        </MenuItem>
+      ),
+      <MenuItem key="create" onClick={() => goTo("/nuevo-anuncio")}>
+        Crear Anuncio
+      </MenuItem>,
+    ];
+
+    // Filtramos los `false` o `null` de los condicionales
+    return items.filter(Boolean);
+  };
 
   return (
     <AppBar position="static">
@@ -100,7 +113,15 @@ const Header = () => {
             >
               {renderMenuItems()}
             </Menu>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                flexGrow: 1,
+                cursor: isMobile ? "pointer" : "default", // cambia el cursor solo en móvil
+              }}
+              onClick={isMobile ? () => goTo("/") : undefined} // solo clickeable en móvil
+            >
               Anuncios Orizaba
             </Typography>
           </>

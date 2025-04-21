@@ -170,11 +170,11 @@ const Home = () => {
         <>
           <Grid
             container
-            spacing={{ xs: 2, md: 3 }}
-            columns={{ xs: 4, sm: 8, md: 12 }}
+            rowSpacing={1}
+            columnSpacing={{ xs: 2, sm: 2, md: 3 }}
           >
             {paginatedAdverts.map((adv) => (
-              <Grid key={adv.id}>
+              <Grid size={{ xs: 6, md: 3 }} key={adv.id}>
                 <CustomCard adv={adv} />
               </Grid>
             ))}
