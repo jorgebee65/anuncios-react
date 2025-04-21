@@ -17,10 +17,5 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copia una configuración de Nginx personalizada (opcional, te muestro un ejemplo abajo)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Script de entrada que crea env.js con variables del entorno
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-
 EXPOSE 80
-ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
