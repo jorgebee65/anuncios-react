@@ -1,3 +1,3 @@
 window.env = {
-  VITE_API_URL: "https://ofertori.com",
+  VITE_API_URL: "http://localhost:8585",
 };
