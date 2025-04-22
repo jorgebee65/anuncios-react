@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -16,12 +16,11 @@ import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
+  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState(null);
   const [firstName, setFirstName] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -29,20 +28,11 @@ const Header = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setIsAuthenticated(true);
-        setFirstName(decoded.firstName);
-        const roles = decoded.roles;
-        setRole(Array.isArray(roles) ? roles[0] : roles);
-      } catch (e) {
-        console.error("Token inválido:", e);
-        setIsAuthenticated(false);
-      }
+    if (user) {
+      const roles = user.roles;
+      setRole(Array.isArray(roles) ? roles[0] : roles);
     }
-  }, [location]);
+  }, [user]);
 
   const goTo = (path) => {
     setAnchorEl(null);
@@ -50,8 +40,7 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsAuthenticated(false);
+    logout();
     setAnchorEl(null);
     navigate("/");
   };

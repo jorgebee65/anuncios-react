@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+
 import {
   Container,
   TextField,
@@ -12,22 +13,20 @@ import {
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 
-const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
 const LoginSchema = Yup.object().shape({
   username: Yup.string().required("Requerido"),
   password: Yup.string().required("Requerido"),
 });
 
 const LoginPage = () => {
-  const navigate = useNavigate();
   const [error, setError] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async (values, { setSubmitting }) => {
     setError("");
     try {
-      const response = await axios.post(`${baseUrl}/api/v1/auth/login`, values);
-      const token = response.data.token;
-      localStorage.setItem("token", token);
+      await login(values);
       navigate("/");
     } catch (err) {
       setError("Credenciales inválidas o error de servidor");
