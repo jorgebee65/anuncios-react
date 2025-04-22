@@ -24,4 +24,3 @@ dist-ssr
 *.sw?
 
 docker-compose.yml
-public/env.js
