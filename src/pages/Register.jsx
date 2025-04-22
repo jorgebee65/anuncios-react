@@ -6,19 +6,22 @@ import {
   Typography,
   Box,
   Alert,
+  FormHelperText,
 } from "@mui/material";
 import { useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 
 const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
-// 🧠 Validación actualizada
+
 const validationSchema = Yup.object({
   firstName: Yup.string()
     .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(20, "El nombre no debe exceder los 20 caracteres")
     .required("El nombre es obligatorio"),
   username: Yup.string()
     .min(3, "Debe tener al menos 3 caracteres")
+    .max(20, "El nombre de usuario no debe exceder los 20 caracteres")
     .required("El nombre de usuario es obligatorio"),
   password: Yup.string()
     .min(6, "La contraseña debe tener al menos 6 caracteres")
@@ -44,7 +47,6 @@ const Register = () => {
     setError("");
 
     try {
-      // Solo enviar username y password
       const response = await axios.post(`${baseUrl}/api/v1/auth/register`, {
         username: values.username,
         password: values.password,
@@ -80,6 +82,7 @@ const Register = () => {
             handleChange,
             handleBlur,
             isSubmitting,
+            isValid,
           }) => (
             <Form>
               <TextField
@@ -87,12 +90,18 @@ const Register = () => {
                 margin="normal"
                 label="Nombre"
                 name="firstName"
+                placeholder="Ej: Juan Perez"
                 value={values.firstName}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 error={touched.firstName && Boolean(errors.firstName)}
-                helperText={touched.firstName && errors.firstName}
+                helperText={
+                  touched.firstName && errors.firstName
+                    ? errors.firstName
+                    : `${values.firstName.length}/20`
+                }
               />
+
               <TextField
                 fullWidth
                 margin="normal"
@@ -102,7 +111,11 @@ const Register = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 error={touched.username && Boolean(errors.username)}
-                helperText={touched.username && errors.username}
+                helperText={
+                  touched.username && errors.username
+                    ? errors.username
+                    : `${values.username.length}/20 - Puede ser cualquier nombre, no tiene que ser un email.`
+                }
               />
 
               <TextField
@@ -139,7 +152,7 @@ const Register = () => {
                 color="primary"
                 fullWidth
                 sx={{ mt: 2 }}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isValid}
               >
                 Registrarse
               </Button>
