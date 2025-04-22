@@ -1,10 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
-const baseUrl = window?.env?.VITE_API_URL || "http://localhost:8585";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const baseUrl = window?.env?.VITE_API_URL || "http://perro:8585";
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [user, setUser] = useState(null);
 
