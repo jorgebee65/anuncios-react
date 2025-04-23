@@ -35,6 +35,7 @@ const AdvertiseDetail = () => {
   const openDeleteDialog = () => setOpenDialog(true);
   const closeDeleteDialog = () => setOpenDialog(false);
   const [role, setRole] = useState(null);
+  const [showButton, setShowButton] = useState(false);
 
   const handleEditClick = () => {
     navigate(`/nuevo-anuncio/${id}`);
@@ -67,31 +68,36 @@ const AdvertiseDetail = () => {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    let decodedUser = null;
+
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        decodedUser = decoded.sub;
+        const roles = decoded.roles;
+        setRole(Array.isArray(roles) ? roles[0] : roles);
+      } catch (e) {
+        console.error("Token inválido:", e);
+      }
+    }
+
     const fetchAdvertise = async () => {
       try {
         const { data } = await axios.get(`${baseUrl}/api/v1/advertises/${id}`);
         setAd(data);
+
+        if (decodedUser && data.user === decodedUser) {
+          setShowButton(true);
+        } else {
+          setShowButton(false);
+        }
       } catch (error) {
         console.error("Error loading ad:", error);
       } finally {
         setLoading(false);
       }
     };
-
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        const roles = decoded.roles;
-        if (Array.isArray(roles)) {
-          setRole(roles[0]); // O muestra todos si quieres
-        } else {
-          setRole(roles);
-        }
-      } catch (e) {
-        console.error("Token inválido:", e);
-      }
-    }
 
     fetchAdvertise();
   }, [id]);
@@ -142,7 +148,8 @@ const AdvertiseDetail = () => {
           Redes: <a href={ad.facebook}>Facebook</a> |{" "}
           <a href={ad.instagram}>Instagram</a>
         </Typography>
-        {role === "ROLE_ADMIN" && (
+
+        {showButton && (
           <>
             <Button
               variant="contained"

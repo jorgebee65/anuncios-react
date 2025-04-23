@@ -31,6 +31,7 @@ const Header = () => {
     if (user) {
       const roles = user.roles;
       setRole(Array.isArray(roles) ? roles[0] : roles);
+      setFirstName(user.firstName);
     }
   }, [user]);
 

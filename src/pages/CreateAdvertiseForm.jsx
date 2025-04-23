@@ -126,8 +126,10 @@ const CreateAdvertiseForm = () => {
       });
       setFile(null);
     } catch (error) {
-      console.error(error);
-      showSnackbar("Error al crear el anuncio", "error");
+      console.log(error);
+      const message =
+        error.response?.data?.message || "Error al crear el anuncio";
+      showSnackbar(message, "error");
     }
   };
 
@@ -218,7 +220,7 @@ const CreateAdvertiseForm = () => {
       />
 
       <ImageUpload file={file} setFile={setFile} />
-      {role === "ROLE_ADMIN" && (
+      {role && (
         <Button type="submit" variant="contained" fullWidth>
           {id ? "Actualizar" : "Crear Nuevo"}
         </Button>
